@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订单管理测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .success { color: green; }
+        .error { color: red; }
+        button { margin: 5px; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>订单管理功能测试</h1>
+    
+    <div class="test-section">
+        <h2>测试步骤</h2>
+        <ol>
+            <li>点击"重置数据"按钮清除旧数据</li>
+            <li>点击"测试订单数据"按钮验证数据结构</li>
+            <li>在新标签页中打开订单管理页面</li>
+            <li>检查是否有JavaScript错误</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>测试操作</h2>
+        <button onclick="resetData()">重置数据</button>
+        <button onclick="testOrderData()">测试订单数据</button>
+        <button onclick="openOrderManagement()">打开订单管理</button>
+        <button onclick="checkConsoleErrors()">检查控制台错误</button>
+    </div>
+
+    <div class="test-section">
+        <h2>测试结果</h2>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            results.appendChild(div);
+        }
+
+        function resetData() {
+            try {
+                localStorage.clear();
+                log('✅ 本地存储已清除', 'success');
+                
+                // 重新初始化数据
+                const script = document.createElement('script');
+                script.src = 'http://localhost:5175/src/utils/storage.js';
+                script.type = 'module';
+                document.head.appendChild(script);
+                
+                setTimeout(() => {
+                    log('✅ 数据重置完成，请刷新订单管理页面', 'success');
+                }, 1000);
+            } catch (error) {
+                log(`❌ 重置数据失败: ${error.message}`, 'error');
+            }
+        }
+
+        function testOrderData() {
+            try {
+                const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+                log(`📊 找到 ${orders.length} 个订单`, 'info');
+                
+                if (orders.length === 0) {
+                    log('⚠️ 没有订单数据，请先重置数据', 'error');
+                    return;
+                }
+
+                // 检查订单数据结构
+                const firstOrder = orders[0];
+                const requiredFields = ['id', 'customerName', 'activityTitle', 'totalAmount', 'status', 'paymentStatus'];
+                
+                for (const field of requiredFields) {
+                    if (firstOrder[field] !== undefined) {
+                        log(`✅ 字段 ${field}: ${firstOrder[field]}`, 'success');
+                    } else {
+                        log(`❌ 缺少字段: ${field}`, 'error');
+                    }
+                }
+                
+                log('✅ 订单数据结构验证完成', 'success');
+            } catch (error) {
+                log(`❌ 测试订单数据失败: ${error.message}`, 'error');
+            }
+        }
+
+        function openOrderManagement() {
+            window.open('http://localhost:5175/#/admin/orders', '_blank');
+            log('🔗 已在新标签页中打开订单管理页面', 'info');
+        }
+
+        function checkConsoleErrors() {
+            log('🔍 请检查浏览器开发者工具的控制台是否有错误信息', 'info');
+            log('📝 常见错误类型:', 'info');
+            log('   - TypeError: Cannot read properties of undefined', 'info');
+            log('   - 网络请求失败', 'info');
+            log('   - React组件渲染错误', 'info');
+        }
+
+        // 页面加载时自动检查
+        window.onload = function() {
+            log('🚀 测试页面已加载', 'info');
+            log('💡 建议按顺序执行测试步骤', 'info');
+        };
+    </script>
+</body>
+</html>

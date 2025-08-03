@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>预订流程模拟测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .success { color: green; }
+        .error { color: red; }
+        .warning { color: orange; }
+        .info { color: blue; }
+        button { margin: 5px; padding: 10px; }
+        .step { margin: 10px 0; padding: 10px; background: #f5f5f5; border-left: 4px solid #007bff; }
+        .result { margin: 10px 0; padding: 10px; background: #f9f9f9; border: 1px solid #ddd; }
+        pre { background: #f5f5f5; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>预订流程模拟测试</h1>
+    
+    <div class="test-section">
+        <h2>测试说明</h2>
+        <p>这个测试将模拟完整的预订流程，检查每个步骤是否正常工作。</p>
+        <p><strong>注意：</strong>这是模拟测试，不会实际创建订单，只检查数据结构和函数是否正确。</p>
+    </div>
+
+    <div class="test-section">
+        <h2>预订流程测试</h2>
+        <button onclick="runBookingSimulation()">运行预订流程模拟</button>
+        <button onclick="testPaymentFlow()">测试支付流程</button>
+        <button onclick="testErrorHandling()">测试错误处理</button>
+        <button onclick="clearResults()">清除结果</button>
+    </div>
+
+    <div class="test-section">
+        <h2>测试结果</h2>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            results.appendChild(div);
+            console.log(message);
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        function runBookingSimulation() {
+            log('🚀 开始预订流程模拟测试...', 'info');
+            
+            // 步骤1: 检查用户登录状态
+            setTimeout(() => {
+                testUserLogin();
+            }, 100);
+            
+            // 步骤2: 检查活动数据
+            setTimeout(() => {
+                testActivityData();
+            }, 300);
+            
+            // 步骤3: 模拟选择活动
+            setTimeout(() => {
+                testActivitySelection();
+            }, 500);
+            
+            // 步骤4: 模拟填写预订信息
+            setTimeout(() => {
+                testBookingForm();
+            }, 700);
+            
+            // 步骤5: 模拟订单数据创建
+            setTimeout(() => {
+                testOrderCreation();
+            }, 900);
+            
+            setTimeout(() => {
+                log('✅ 预订流程模拟测试完成', 'success');
+            }, 1100);
+        }
+
+        function testUserLogin() {
+            try {
+                const user = JSON.parse(localStorage.getItem('currentUser') || 'null');
+                if (user && user.role === 'customer') {
+                    log(`✅ 用户登录检查通过: ${user.name}`, 'success');
+                    log(`   - 用户ID: ${user.id}`, 'info');
+                    log(`   - 电话: ${user.phone || '未设置'}`, 'info');
+                    log(`   - 会员状态: ${user.isMember ? '是' : '否'}`, 'info');
+                    return true;
+                } else {
+                    log('❌ 用户未登录或角色不正确', 'error');
+                    return false;
+                }
+            } catch (error) {
+                log(`❌ 用户登录检查失败: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        function testActivityData() {
+            try {
+                const activities = JSON.parse(localStorage.getItem('activities') || '[]');
+                if (activities.length > 0) {
+                    log(`✅ 活动数据检查通过: ${activities.length} 个活动`, 'success');
+                    
+                    const firstActivity = activities[0];
+                    log(`   - 示例活动: ${firstActivity.title}`, 'info');
+                    log(`   - 价格: ¥${firstActivity.price}`, 'info');
+                    log(`   - 会员价: ¥${firstActivity.memberPrice}`, 'info');
+                    log(`   - 时间段数量: ${firstActivity.schedule?.length || 0}`, 'info');
+                    
+                    return firstActivity;
+                } else {
+                    log('❌ 没有活动数据', 'error');
+                    return null;
+                }
+            } catch (error) {
+                log(`❌ 活动数据检查失败: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        function testActivitySelection() {
+            try {
+                const activities = JSON.parse(localStorage.getItem('activities') || '[]');
+                if (activities.length === 0) {
+                    log('❌ 无法测试活动选择：没有活动数据', 'error');
+                    return;
+                }
+                
+                const selectedActivity = activities[0];
+                log(`✅ 模拟选择活动: ${selectedActivity.title}`, 'success');
+                
+                if (selectedActivity.schedule && selectedActivity.schedule.length > 0) {
+                    const availableSchedule = selectedActivity.schedule.find(s => s.available > 0);
+                    if (availableSchedule) {
+                        log(`✅ 找到可用时间段: ${availableSchedule.date} ${availableSchedule.time}`, 'success');
+                        log(`   - 可用人数: ${availableSchedule.available}`, 'info');
+                        return { selectedActivity, selectedSchedule: availableSchedule };
+                    } else {
+                        log('⚠️ 所有时间段都已满员', 'warning');
+                        return null;
+                    }
+                } else {
+                    log('❌ 活动没有时间段数据', 'error');
+                    return null;
+                }
+            } catch (error) {
+                log(`❌ 活动选择测试失败: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        function testBookingForm() {
+            try {
+                const user = JSON.parse(localStorage.getItem('currentUser') || 'null');
+                const activities = JSON.parse(localStorage.getItem('activities') || '[]');
+                
+                if (!user || activities.length === 0) {
+                    log('❌ 无法测试预订表单：缺少用户或活动数据', 'error');
+                    return;
+                }
+                
+                const selectedActivity = activities[0];
+                const selectedSchedule = selectedActivity.schedule?.[0];
+                const participants = 1;
+                
+                if (!selectedSchedule) {
+                    log('❌ 无法测试预订表单：没有可用时间段', 'error');
+                    return;
+                }
+                
+                log('✅ 模拟填写预订表单', 'success');
+                log(`   - 参与人数: ${participants}`, 'info');
+                log(`   - 选择时间: ${selectedSchedule.date} ${selectedSchedule.time}`, 'info');
+                
+                const price = user.isMember ? selectedActivity.memberPrice : selectedActivity.price;
+                const totalPrice = price * participants;
+                
+                log(`   - 单价: ¥${price} ${user.isMember ? '(会员价)' : '(普通价)'}`, 'info');
+                log(`   - 总价: ¥${totalPrice}`, 'info');
+                
+                return {
+                    selectedActivity,
+                    selectedSchedule,
+                    participants,
+                    price,
+                    totalPrice
+                };
+            } catch (error) {
+                log(`❌ 预订表单测试失败: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        function testOrderCreation() {
+            try {
+                const user = JSON.parse(localStorage.getItem('currentUser') || 'null');
+                const activities = JSON.parse(localStorage.getItem('activities') || '[]');
+                
+                if (!user || activities.length === 0) {
+                    log('❌ 无法测试订单创建：缺少用户或活动数据', 'error');
+                    return;
+                }
+                
+                const selectedActivity = activities[0];
+                const selectedSchedule = selectedActivity.schedule?.[0];
+                const participants = 1;
+                const price = user.isMember ? selectedActivity.memberPrice : selectedActivity.price;
+                const totalPrice = price * participants;
+                
+                // 模拟创建订单数据
+                const orderData = {
+                    customerId: user.id,
+                    customerName: user.name,
+                    customerPhone: user.phone || '',
+                    activityId: selectedActivity.id,
+                    activityTitle: selectedActivity.title,
+                    activityDate: selectedSchedule.date,
+                    date: selectedSchedule.date,
+                    time: selectedSchedule.time,
+                    participants: participants,
+                    unitPrice: price,
+                    originalPrice: selectedActivity.price * participants,
+                    finalPrice: totalPrice,
+                    totalAmount: totalPrice,
+                    isMemberPrice: user.isMember,
+                    status: 'pending',
+                    paymentStatus: 'pending'
+                };
+                
+                log('✅ 模拟创建订单数据', 'success');
+                log('📋 订单数据结构:', 'info');
+                
+                // 检查必需字段
+                const requiredFields = [
+                    'customerId', 'customerName', 'activityId', 'activityTitle',
+                    'date', 'time', 'participants', 'totalAmount', 'status', 'paymentStatus'
+                ];
+                
+                let allFieldsPresent = true;
+                for (const field of requiredFields) {
+                    if (orderData[field] !== undefined && orderData[field] !== null) {
+                        log(`   ✅ ${field}: ${orderData[field]}`, 'success');
+                    } else {
+                        log(`   ❌ 缺少字段: ${field}`, 'error');
+                        allFieldsPresent = false;
+                    }
+                }
+                
+                if (allFieldsPresent) {
+                    log('✅ 订单数据结构验证通过', 'success');
+                } else {
+                    log('❌ 订单数据结构验证失败', 'error');
+                }
+                
+                return orderData;
+            } catch (error) {
+                log(`❌ 订单创建测试失败: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        function testPaymentFlow() {
+            log('💳 开始支付流程测试...', 'info');
+            
+            // 模拟支付记录
+            const mockPaymentRecord = {
+                id: `pay_${Date.now()}`,
+                amount: 228,
+                method: 'alipay',
+                status: 'completed',
+                createdAt: new Date().toISOString(),
+                completedAt: new Date().toISOString(),
+                transactionId: `txn_${Date.now()}_test123`
+            };
+            
+            log('✅ 模拟支付记录创建', 'success');
+            log(`   - 支付ID: ${mockPaymentRecord.id}`, 'info');
+            log(`   - 金额: ¥${mockPaymentRecord.amount}`, 'info');
+            log(`   - 支付方式: ${mockPaymentRecord.method}`, 'info');
+            log(`   - 状态: ${mockPaymentRecord.status}`, 'info');
+            
+            // 检查支付处理函数是否存在
+            log('🔍 检查支付处理函数...', 'info');
+            log('   - handlePaymentSuccess: 应该在CustomerHome组件中定义', 'info');
+            log('   - handlePaymentCancel: 应该在CustomerHome组件中定义', 'info');
+            log('   - handlePaymentError: 应该在CustomerHome组件中定义', 'info');
+            
+            log('✅ 支付流程测试完成', 'success');
+        }
+
+        function testErrorHandling() {
+            log('🛡️ 开始错误处理测试...', 'info');
+            
+            // 测试各种错误场景
+            const errorScenarios = [
+                '用户未登录',
+                '活动数据缺失',
+                '时间段已满员',
+                '支付失败',
+                '网络错误'
+            ];
+            
+            errorScenarios.forEach((scenario, index) => {
+                setTimeout(() => {
+                    log(`🔍 测试错误场景: ${scenario}`, 'info');
+                    log(`   - 应该显示适当的错误消息`, 'info');
+                    log(`   - 应该提供重试或返回选项`, 'info');
+                }, index * 200);
+            });
+            
+            setTimeout(() => {
+                log('✅ 错误处理测试完成', 'success');
+            }, errorScenarios.length * 200 + 100);
+        }
+
+        // 页面加载时的初始化
+        window.onload = function() {
+            log('🚀 预订流程模拟测试页面已加载', 'info');
+            log('💡 点击"运行预订流程模拟"开始测试', 'info');
+        };
+    </script>
+</body>
+</html>

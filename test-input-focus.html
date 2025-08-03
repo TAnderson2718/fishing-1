@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>输入框焦点测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .input-field {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn-primary {
+            background-color: #2563eb;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .success { color: #22c55e; }
+        .error { color: #ef4444; }
+        .info { color: #3b82f6; }
+        .warning { color: #f59e0b; }
+    </style>
+</head>
+<body>
+    <h1>🔧 输入框焦点测试页面</h1>
+    
+    <div class="test-section">
+        <h2>📝 基础输入测试</h2>
+        <p>请在下面的输入框中连续输入多个字符，测试是否会失去焦点：</p>
+        
+        <label>姓名:</label>
+        <input type="text" class="input-field" placeholder="请输入姓名" id="name-input">
+        
+        <label>邮箱:</label>
+        <input type="email" class="input-field" placeholder="请输入邮箱" id="email-input">
+        
+        <label>电话:</label>
+        <input type="tel" class="input-field" placeholder="请输入电话" id="phone-input">
+        
+        <label>描述:</label>
+        <textarea class="input-field" rows="3" placeholder="请输入描述" id="desc-input"></textarea>
+    </div>
+
+    <div class="test-section">
+        <h2>🎯 模拟员工管理表单</h2>
+        <form id="staff-form">
+            <label>用户名:</label>
+            <input type="text" class="input-field" placeholder="请输入用户名" id="username">
+            
+            <label>密码:</label>
+            <input type="password" class="input-field" placeholder="请输入密码" id="password">
+            
+            <label>姓名:</label>
+            <input type="text" class="input-field" placeholder="请输入姓名" id="fullname">
+            
+            <label>邮箱:</label>
+            <input type="email" class="input-field" placeholder="请输入邮箱" id="email">
+            
+            <label>电话:</label>
+            <input type="tel" class="input-field" placeholder="请输入电话" id="phone">
+            
+            <div style="margin-top: 15px;">
+                <button type="button" class="btn btn-secondary" onclick="resetForm()">重置</button>
+                <button type="submit" class="btn btn-primary">提交</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 实时测试结果</h2>
+        <div id="test-log" class="log"></div>
+        <button class="btn btn-secondary" onclick="clearLog()">清空日志</button>
+        <button class="btn btn-primary" onclick="runAutoTest()">运行自动测试</button>
+    </div>
+
+    <script>
+        let testLog = [];
+        let focusEvents = [];
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            testLog.push(logEntry);
+            
+            const logDiv = document.getElementById('test-log');
+            const logLine = document.createElement('div');
+            logLine.className = type;
+            logLine.textContent = logEntry;
+            logDiv.appendChild(logLine);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            testLog = [];
+            focusEvents = [];
+            document.getElementById('test-log').innerHTML = '';
+        }
+
+        function resetForm() {
+            document.getElementById('staff-form').reset();
+            log('表单已重置', 'info');
+        }
+
+        // 监听所有输入框的焦点事件
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('input, textarea');
+            
+            inputs.forEach((input, index) => {
+                input.addEventListener('focus', () => {
+                    const event = {
+                        type: 'focus',
+                        element: input.id || `input-${index}`,
+                        time: Date.now()
+                    };
+                    focusEvents.push(event);
+                    log(`✅ 焦点获得: ${event.element}`, 'success');
+                });
+
+                input.addEventListener('blur', () => {
+                    const event = {
+                        type: 'blur',
+                        element: input.id || `input-${index}`,
+                        time: Date.now()
+                    };
+                    focusEvents.push(event);
+                    log(`❌ 焦点失去: ${event.element}`, 'warning');
+                });
+
+                input.addEventListener('input', (e) => {
+                    const value = e.target.value;
+                    log(`📝 输入内容: ${input.id || `input-${index}`} = "${value}"`, 'info');
+                    
+                    // 检查是否在输入过程中失去焦点
+                    setTimeout(() => {
+                        if (document.activeElement !== input) {
+                            log(`⚠️  警告: 输入过程中失去焦点! ${input.id || `input-${index}`}`, 'error');
+                        }
+                    }, 10);
+                });
+            });
+        });
+
+        // 表单提交处理
+        document.getElementById('staff-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            log('📤 表单提交 (已阻止实际提交)', 'success');
+            
+            // 模拟状态更新
+            setTimeout(() => {
+                log('🔄 模拟状态更新完成', 'info');
+            }, 100);
+        });
+
+        // 自动测试函数
+        function runAutoTest() {
+            log('🚀 开始自动测试...', 'info');
+            
+            const testInputs = [
+                { id: 'username', value: '测试用户123' },
+                { id: 'password', value: 'password123' },
+                { id: 'fullname', value: '张三李四' },
+                { id: 'email', value: 'test@example.com' },
+                { id: 'phone', value: '13800138000' }
+            ];
+
+            let currentTest = 0;
+            
+            function runNextTest() {
+                if (currentTest >= testInputs.length) {
+                    log('✅ 自动测试完成!', 'success');
+                    return;
+                }
+
+                const test = testInputs[currentTest];
+                const input = document.getElementById(test.id);
+                
+                if (input) {
+                    log(`🎯 测试输入框: ${test.id}`, 'info');
+                    input.focus();
+                    
+                    // 模拟逐字符输入
+                    let charIndex = 0;
+                    const typeChar = () => {
+                        if (charIndex < test.value.length) {
+                            input.value = test.value.substring(0, charIndex + 1);
+                            input.dispatchEvent(new Event('input', { bubbles: true }));
+                            charIndex++;
+                            setTimeout(typeChar, 100);
+                        } else {
+                            currentTest++;
+                            setTimeout(runNextTest, 500);
+                        }
+                    };
+                    
+                    setTimeout(typeChar, 200);
+                } else {
+                    log(`❌ 找不到输入框: ${test.id}`, 'error');
+                    currentTest++;
+                    setTimeout(runNextTest, 100);
+                }
+            }
+            
+            runNextTest();
+        }
+
+        log('🔧 输入框焦点测试页面已加载', 'success');
+        log('💡 请手动测试输入框，或点击"运行自动测试"', 'info');
+    </script>
+</body>
+</html>

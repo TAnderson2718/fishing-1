@@ -1,0 +1,24 @@
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="192" height="192" rx="24" fill="#2563eb"/>
+  <g transform="translate(32, 32)">
+    <!-- 钓鱼竿 -->
+    <path d="M20 20 L100 100" stroke="white" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="20" cy="20" r="4" fill="white"/>
+    
+    <!-- 鱼钩和线 -->
+    <path d="M100 100 L110 120" stroke="white" stroke-width="2" stroke-linecap="round"/>
+    <path d="M110 120 C115 125 115 130 110 135" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/>
+    
+    <!-- 鱼 -->
+    <ellipse cx="80" cy="110" rx="15" ry="8" fill="#fbbf24" transform="rotate(-15 80 110)"/>
+    <circle cx="75" cy="108" r="2" fill="white"/>
+    <path d="M95 115 L105 110 L105 120 Z" fill="#fbbf24"/>
+    
+    <!-- 水波纹 -->
+    <path d="M30 130 Q40 125 50 130 T70 130" stroke="#60a5fa" stroke-width="2" fill="none"/>
+    <path d="M40 140 Q50 135 60 140 T80 140" stroke="#60a5fa" stroke-width="2" fill="none"/>
+    
+    <!-- 山峰 -->
+    <path d="M10 50 L25 30 L40 50 L55 35 L70 50 L85 40 L100 50" stroke="#10b981" stroke-width="2" fill="none"/>
+  </g>
+</svg>

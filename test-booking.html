@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>预订流程测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .success { color: green; }
+        .error { color: red; }
+        .warning { color: orange; }
+        button { margin: 5px; padding: 10px; }
+        .step { margin: 10px 0; padding: 10px; background: #f5f5f5; }
+    </style>
+</head>
+<body>
+    <h1>顾客端预订流程测试</h1>
+    
+    <div class="test-section">
+        <h2>测试步骤</h2>
+        <div class="step">
+            <strong>步骤 1:</strong> 确保已登录为顾客用户
+            <button onclick="checkLoginStatus()">检查登录状态</button>
+        </div>
+        <div class="step">
+            <strong>步骤 2:</strong> 打开顾客首页
+            <button onclick="openCustomerHome()">打开顾客首页</button>
+        </div>
+        <div class="step">
+            <strong>步骤 3:</strong> 选择活动并点击"立即预订"
+            <span class="warning">（手动操作）</span>
+        </div>
+        <div class="step">
+            <strong>步骤 4:</strong> 填写预订信息
+            <span class="warning">（手动操作）</span>
+        </div>
+        <div class="step">
+            <strong>步骤 5:</strong> 点击"确认预订"按钮
+            <span class="warning">（手动操作）</span>
+        </div>
+        <div class="step">
+            <strong>步骤 6:</strong> 完成支付流程
+            <span class="warning">（手动操作）</span>
+        </div>
+        <div class="step">
+            <strong>步骤 7:</strong> 检查控制台错误
+            <button onclick="checkConsoleErrors()">检查控制台</button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>自动化测试</h2>
+        <button onclick="testDataStructure()">测试数据结构</button>
+        <button onclick="testAuthContext()">测试认证上下文</button>
+        <button onclick="testStorageMethods()">测试存储方法</button>
+        <button onclick="runFullTest()">运行完整测试</button>
+    </div>
+
+    <div class="test-section">
+        <h2>测试结果</h2>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            results.appendChild(div);
+            console.log(message);
+        }
+
+        function checkLoginStatus() {
+            try {
+                const user = JSON.parse(localStorage.getItem('currentUser') || 'null');
+                if (user) {
+                    log(`✅ 用户已登录: ${user.name} (${user.role})`, 'success');
+                    if (user.role !== 'customer') {
+                        log(`⚠️ 当前用户角色为 ${user.role}，需要切换到顾客角色`, 'warning');
+                    }
+                } else {
+                    log('❌ 用户未登录，请先登录', 'error');
+                }
+            } catch (error) {
+                log(`❌ 检查登录状态失败: ${error.message}`, 'error');
+            }
+        }
+
+        function openCustomerHome() {
+            window.open('http://localhost:5175/#/customer/home', '_blank');
+            log('🔗 已在新标签页中打开顾客首页', 'info');
+        }
+
+        function checkConsoleErrors() {
+            log('🔍 请检查浏览器开发者工具的控制台', 'info');
+            log('📝 常见错误类型:', 'info');
+            log('   - ReferenceError: handlePaymentSuccess is not defined', 'info');
+            log('   - TypeError: Cannot read properties of undefined', 'info');
+            log('   - 网络请求失败', 'info');
+            log('   - React组件渲染错误', 'info');
+        }
+
+        function testDataStructure() {
+            try {
+                const activities = JSON.parse(localStorage.getItem('activities') || '[]');
+                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                
+                log(`📊 活动数据: ${activities.length} 个活动`, 'info');
+                log(`👥 用户数据: ${users.length} 个用户`, 'info');
+                
+                if (activities.length > 0) {
+                    const firstActivity = activities[0];
+                    const requiredFields = ['id', 'title', 'price', 'schedule'];
+                    
+                    for (const field of requiredFields) {
+                        if (firstActivity[field] !== undefined) {
+                            log(`✅ 活动字段 ${field}: 存在`, 'success');
+                        } else {
+                            log(`❌ 活动缺少字段: ${field}`, 'error');
+                        }
+                    }
+                }
+                
+                log('✅ 数据结构验证完成', 'success');
+            } catch (error) {
+                log(`❌ 测试数据结构失败: ${error.message}`, 'error');
+            }
+        }
+
+        function testAuthContext() {
+            try {
+                // 检查认证相关的localStorage数据
+                const currentUser = localStorage.getItem('currentUser');
+                const users = localStorage.getItem('users');
+                
+                if (currentUser) {
+                    log('✅ 当前用户数据存在', 'success');
+                } else {
+                    log('⚠️ 当前用户数据不存在', 'warning');
+                }
+                
+                if (users) {
+                    log('✅ 用户列表数据存在', 'success');
+                } else {
+                    log('❌ 用户列表数据不存在', 'error');
+                }
+                
+                log('✅ 认证上下文测试完成', 'success');
+            } catch (error) {
+                log(`❌ 测试认证上下文失败: ${error.message}`, 'error');
+            }
+        }
+
+        function testStorageMethods() {
+            try {
+                // 测试关键的存储方法是否可用
+                const testMethods = [
+                    'activities',
+                    'users', 
+                    'orders',
+                    'payments'
+                ];
+                
+                for (const method of testMethods) {
+                    const data = localStorage.getItem(method);
+                    if (data) {
+                        log(`✅ ${method} 数据存在`, 'success');
+                    } else {
+                        log(`⚠️ ${method} 数据不存在`, 'warning');
+                    }
+                }
+                
+                log('✅ 存储方法测试完成', 'success');
+            } catch (error) {
+                log(`❌ 测试存储方法失败: ${error.message}`, 'error');
+            }
+        }
+
+        function runFullTest() {
+            log('🚀 开始运行完整测试...', 'info');
+            
+            setTimeout(() => {
+                checkLoginStatus();
+            }, 100);
+            
+            setTimeout(() => {
+                testDataStructure();
+            }, 200);
+            
+            setTimeout(() => {
+                testAuthContext();
+            }, 300);
+            
+            setTimeout(() => {
+                testStorageMethods();
+            }, 400);
+            
+            setTimeout(() => {
+                log('✅ 完整测试运行完成', 'success');
+                log('💡 现在可以手动测试预订流程', 'info');
+            }, 500);
+        }
+
+        // 页面加载时自动检查
+        window.onload = function() {
+            log('🚀 预订流程测试页面已加载', 'info');
+            log('💡 建议先运行完整测试，然后手动测试预订流程', 'info');
+        };
+    </script>
+</body>
+</html>
