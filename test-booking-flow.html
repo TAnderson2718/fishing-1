@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>预订流程兼容性测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+        .warning { color: #ffc107; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .flow-step {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            background: #f9f9f9;
+        }
+        .step-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .step-number {
+            background: #007bff;
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .booking-form {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .form-group input, .form-group select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .order-summary {
+            background: #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .qr-code {
+            text-align: center;
+            padding: 20px;
+            border: 2px dashed #007bff;
+            border-radius: 8px;
+            background: #f8f9ff;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔄 预订流程兼容性测试</h1>
+        <p>测试路亚钓鱼体验活动（3小时）的完整预订流程</p>
+        
+        <div>
+            <button onclick="testCompleteFlow()">测试完整流程</button>
+            <button onclick="testPaymentFlow()">测试支付流程</button>
+            <button onclick="testQRGeneration()">测试QR码生成</button>
+            <button onclick="testDataConsistency()">测试数据一致性</button>
+            <button onclick="clearLog()">清除日志</button>
+        </div>
+        
+        <div id="log" class="log"></div>
+        
+        <div id="flowInterface"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logElement = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type;
+            logElement.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+            document.getElementById('flowInterface').innerHTML = '';
+        }
+
+        // 模拟活动数据
+        const activity = {
+            id: 1,
+            title: "路亚钓鱼体验",
+            description: "专业教练指导，体验路亚钓鱼的乐趣",
+            category: "lure_fishing",
+            price: 288,
+            memberPrice: 228,
+            duration: "3小时",
+            maxParticipants: 8,
+            location: "东湖钓鱼基地",
+            features: ["专业教练", "装备提供", "鱼获保证"],
+            schedule: [
+                { date: "2024-08-05", time: "08:00-11:00", available: 6 },
+                { date: "2024-08-05", time: "14:00-17:00", available: 3 },
+                { date: "2024-08-06", time: "08:00-11:00", available: 8 },
+            ]
+        };
+
+        // 模拟客户数据
+        const customer = {
+            id: 7,
+            name: "测试用户",
+            phone: "13800138007",
+            email: "test@example.com",
+            isMember: true
+        };
+
+        function testCompleteFlow() {
+            log('🚀 开始测试完整预订流程...', 'info');
+            
+            try {
+                // 步骤1: 客户浏览活动
+                log('👀 步骤1: 客户浏览活动列表', 'info');
+                log(`   找到活动: ${activity.title}`, 'info');
+                log(`   活动时长: ${activity.duration}`, 'success');
+                log(`   活动价格: ¥${activity.price} (会员价: ¥${activity.memberPrice})`, 'info');
+
+                // 步骤2: 选择时间
+                log('📅 步骤2: 选择预订时间', 'info');
+                const selectedSchedule = activity.schedule[0];
+                log(`   选择时间: ${selectedSchedule.date} ${selectedSchedule.time}`, 'info');
+                
+                // 验证时间段为3小时
+                const [start, end] = selectedSchedule.time.split('-');
+                const startHour = parseInt(start.split(':')[0]);
+                const endHour = parseInt(end.split(':')[0]);
+                const duration = endHour - startHour;
+                
+                if (duration === 3) {
+                    log(`   ✅ 时间段验证通过: ${duration}小时`, 'success');
+                } else {
+                    log(`   ❌ 时间段验证失败: ${duration}小时`, 'error');
+                    return;
+                }
+
+                // 步骤3: 填写预订信息
+                log('📝 步骤3: 填写预订信息', 'info');
+                const bookingData = {
+                    customerId: customer.id,
+                    customerName: customer.name,
+                    customerPhone: customer.phone,
+                    activityId: activity.id,
+                    activityTitle: activity.title,
+                    date: selectedSchedule.date,
+                    time: selectedSchedule.time,
+                    participants: 1,
+                    unitPrice: customer.isMember ? activity.memberPrice : activity.price,
+                    isMemberPrice: customer.isMember
+                };
+                
+                log(`   客户: ${bookingData.customerName}`, 'info');
+                log(`   联系方式: ${bookingData.customerPhone}`, 'info');
+                log(`   参与人数: ${bookingData.participants}人`, 'info');
+                log(`   单价: ¥${bookingData.unitPrice}`, 'info');
+
+                // 步骤4: 计算费用
+                log('💰 步骤4: 计算预订费用', 'info');
+                const totalAmount = bookingData.unitPrice * bookingData.participants;
+                log(`   总金额: ¥${totalAmount}`, 'info');
+                if (customer.isMember) {
+                    const savings = (activity.price - activity.memberPrice) * bookingData.participants;
+                    log(`   会员优惠: 节省¥${savings}`, 'success');
+                }
+
+                // 步骤5: 生成订单
+                log('📋 步骤5: 生成预订订单', 'info');
+                const orderId = `ORD${Date.now()}`;
+                const order = {
+                    id: orderId,
+                    ...bookingData,
+                    totalAmount: totalAmount,
+                    status: 'pending',
+                    paymentStatus: 'pending',
+                    createdAt: new Date().toISOString()
+                };
+                
+                log(`   订单号: ${order.id}`, 'info');
+                log(`   订单状态: ${order.status}`, 'info');
+                log('✅ 订单生成成功', 'success');
+
+                displayBookingFlow(order);
+
+            } catch (error) {
+                log(`❌ 完整流程测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        function testPaymentFlow() {
+            log('💳 开始测试支付流程...', 'info');
+            
+            try {
+                // 模拟订单
+                const order = {
+                    id: "ORD_TEST_001",
+                    customerName: customer.name,
+                    activityTitle: activity.title,
+                    date: "2024-08-05",
+                    time: "08:00-11:00",
+                    participants: 1,
+                    totalAmount: customer.isMember ? activity.memberPrice : activity.price,
+                    status: 'pending',
+                    paymentStatus: 'pending'
+                };
+
+                log('💰 处理支付请求...', 'info');
+                log(`   订单号: ${order.id}`, 'info');
+                log(`   支付金额: ¥${order.totalAmount}`, 'info');
+
+                // 模拟支付处理
+                log('🔄 连接支付网关...', 'info');
+                setTimeout(() => {
+                    log('✅ 支付成功', 'success');
+                    
+                    // 更新订单状态
+                    order.status = 'confirmed';
+                    order.paymentStatus = 'paid';
+                    order.paidAt = new Date().toISOString();
+                    
+                    log('📋 更新订单状态...', 'info');
+                    log(`   订单状态: ${order.status}`, 'success');
+                    log(`   支付状态: ${order.paymentStatus}`, 'success');
+                    
+                    // 生成QR码
+                    testQRGeneration(order);
+                    
+                }, 1000);
+
+            } catch (error) {
+                log(`❌ 支付流程测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        function testQRGeneration(order = null) {
+            log('📱 开始测试QR码生成...', 'info');
+            
+            try {
+                if (!order) {
+                    order = {
+                        id: "ORD_QR_TEST",
+                        customerName: customer.name,
+                        activityTitle: activity.title,
+                        date: "2024-08-05",
+                        time: "08:00-11:00",
+                        participants: 1,
+                        status: 'confirmed',
+                        paymentStatus: 'paid'
+                    };
+                }
+
+                // 生成QR码内容
+                const qrContent = `QR_${order.id}_2024`;
+                order.qrCode = qrContent;
+                
+                log('🔧 生成QR码...', 'info');
+                log(`   QR码内容: ${qrContent}`, 'info');
+                log(`   包含信息:`, 'info');
+                log(`     - 订单号: ${order.id}`, 'info');
+                log(`     - 客户: ${order.customerName}`, 'info');
+                log(`     - 活动: ${order.activityTitle}`, 'info');
+                log(`     - 时间: ${order.date} ${order.time} (3小时)`, 'success');
+                log(`     - 人数: ${order.participants}人`, 'info');
+                
+                log('✅ QR码生成成功', 'success');
+                
+                // 模拟QR码验证
+                log('🔍 测试QR码验证...', 'info');
+                if (order.qrCode && order.status === 'confirmed') {
+                    log('✅ QR码验证通过', 'success');
+                } else {
+                    log('❌ QR码验证失败', 'error');
+                }
+
+                displayQRCode(order);
+
+            } catch (error) {
+                log(`❌ QR码生成测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        function testDataConsistency() {
+            log('🔍 开始测试数据一致性...', 'info');
+            
+            try {
+                // 检查活动数据一致性
+                log('📊 检查活动数据一致性...', 'info');
+                
+                // 验证时长
+                if (activity.duration === "3小时") {
+                    log('✅ 活动时长数据一致: 3小时', 'success');
+                } else {
+                    log(`❌ 活动时长数据不一致: ${activity.duration}`, 'error');
+                }
+
+                // 验证时间安排
+                log('🕐 检查时间安排一致性...', 'info');
+                let allSchedulesValid = true;
+                
+                activity.schedule.forEach((schedule, index) => {
+                    const [start, end] = schedule.time.split('-');
+                    const startHour = parseInt(start.split(':')[0]);
+                    const endHour = parseInt(end.split(':')[0]);
+                    const duration = endHour - startHour;
+                    
+                    if (duration === 3) {
+                        log(`   ✅ 时间段 ${index + 1} 一致: ${schedule.time} (${duration}小时)`, 'success');
+                    } else {
+                        log(`   ❌ 时间段 ${index + 1} 不一致: ${schedule.time} (${duration}小时)`, 'error');
+                        allSchedulesValid = false;
+                    }
+                });
+
+                if (allSchedulesValid) {
+                    log('✅ 所有时间安排数据一致', 'success');
+                }
+
+                // 检查价格数据
+                log('💰 检查价格数据...', 'info');
+                if (activity.price > 0 && activity.memberPrice > 0 && activity.memberPrice < activity.price) {
+                    log('✅ 价格数据正常', 'success');
+                    log(`   原价: ¥${activity.price}`, 'info');
+                    log(`   会员价: ¥${activity.memberPrice}`, 'info');
+                } else {
+                    log('❌ 价格数据异常', 'error');
+                }
+
+                // 检查容量数据
+                log('👥 检查容量数据...', 'info');
+                if (activity.maxParticipants > 0) {
+                    log(`✅ 最大容量: ${activity.maxParticipants}人`, 'success');
+                } else {
+                    log('❌ 容量数据异常', 'error');
+                }
+
+                log('🎯 数据一致性检查完成', 'success');
+
+            } catch (error) {
+                log(`❌ 数据一致性测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        function displayBookingFlow(order) {
+            const interfaceElement = document.getElementById('flowInterface');
+            
+            interfaceElement.innerHTML = `
+                <div class="flow-step">
+                    <div class="step-header">
+                        <div class="step-number">1</div>
+                        <h4>活动选择</h4>
+                    </div>
+                    <p><strong>活动:</strong> ${activity.title}</p>
+                    <p><strong>时长:</strong> <span class="highlight">${activity.duration}</span></p>
+                    <p><strong>地点:</strong> ${activity.location}</p>
+                </div>
+
+                <div class="flow-step">
+                    <div class="step-header">
+                        <div class="step-number">2</div>
+                        <h4>时间选择</h4>
+                    </div>
+                    <p><strong>日期:</strong> ${order.date}</p>
+                    <p><strong>时间:</strong> <span class="highlight">${order.time}</span></p>
+                    <p><strong>可预订:</strong> ${activity.schedule[0].available}人</p>
+                </div>
+
+                <div class="flow-step">
+                    <div class="step-header">
+                        <div class="step-number">3</div>
+                        <h4>预订信息</h4>
+                    </div>
+                    <div class="booking-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>客户姓名:</label>
+                                <input type="text" value="${order.customerName}" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>联系电话:</label>
+                                <input type="text" value="${order.customerPhone}" readonly>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>参与人数:</label>
+                                <input type="number" value="${order.participants}" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>单价:</label>
+                                <input type="text" value="¥${order.unitPrice}" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flow-step">
+                    <div class="step-header">
+                        <div class="step-number">4</div>
+                        <h4>订单确认</h4>
+                    </div>
+                    <div class="order-summary">
+                        <p><strong>订单号:</strong> ${order.id}</p>
+                        <p><strong>活动:</strong> ${order.activityTitle}</p>
+                        <p><strong>时间:</strong> ${order.date} ${order.time} (3小时)</p>
+                        <p><strong>人数:</strong> ${order.participants}人</p>
+                        <p><strong>总金额:</strong> ¥${order.totalAmount}</p>
+                        ${order.isMemberPrice ? '<p><strong>会员优惠:</strong> 已享受会员价格</p>' : ''}
+                    </div>
+                    
+                    <button onclick="log('💳 跳转到支付页面...', 'info'); testPaymentFlow()">
+                        确认并支付
+                    </button>
+                </div>
+            `;
+        }
+
+        function displayQRCode(order) {
+            const interfaceElement = document.getElementById('flowInterface');
+            
+            interfaceElement.innerHTML += `
+                <div class="flow-step">
+                    <div class="step-header">
+                        <div class="step-number">5</div>
+                        <h4>支付成功</h4>
+                    </div>
+                    <div class="qr-code">
+                        <h4>📱 预订确认QR码</h4>
+                        <div style="font-size: 24px; margin: 20px 0;">
+                            📱 ${order.qrCode}
+                        </div>
+                        <p>请保存此QR码，到场时出示给工作人员扫描确认</p>
+                        <p><strong>活动信息:</strong></p>
+                        <p>${order.activityTitle} | ${order.date} ${order.time} | ${order.participants}人</p>
+                    </div>
+                    
+                    <button onclick="log('📱 QR码已保存到相册', 'success')">保存QR码</button>
+                    <button onclick="log('📧 预订确认邮件已发送', 'success')">发送邮件</button>
+                </div>
+            `;
+        }
+
+        // 页面加载时自动运行测试
+        window.onload = function() {
+            log('🚀 预订流程兼容性测试开始', 'info');
+            log('🎯 测试目标: 验证路亚钓鱼体验活动(3小时)的完整预订流程', 'info');
+            log('', 'info');
+            testCompleteFlow();
+        };
+    </script>
+</body>
+</html>

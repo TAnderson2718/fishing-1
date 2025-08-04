@@ -174,15 +174,15 @@ export class DataManager {
         category: "lure_fishing",
         price: 288,
         memberPrice: 228,
-        duration: "4小时",
+        duration: "3小时",
         maxParticipants: 8,
         location: "东湖钓鱼基地",
         image: "/api/placeholder/400/300",
         features: ["专业教练", "装备提供", "鱼获保证"],
         schedule: [
-          { date: "2024-08-05", time: "08:00-12:00", available: 6 },
-          { date: "2024-08-05", time: "14:00-18:00", available: 3 },
-          { date: "2024-08-06", time: "08:00-12:00", available: 8 },
+          { date: "2024-08-05", time: "08:00-11:00", available: 6 },
+          { date: "2024-08-05", time: "14:00-17:00", available: 3 },
+          { date: "2024-08-06", time: "08:00-11:00", available: 8 },
         ]
       },
       {
@@ -282,7 +282,7 @@ export class DataManager {
         activityTitle: "路亚钓鱼体验",
         activityDate: "2024-08-05",
         date: "2024-08-05",
-        time: "08:00-12:00",
+        time: "08:00-11:00",
         participants: 1,
         unitPrice: 228,
         originalPrice: 288,

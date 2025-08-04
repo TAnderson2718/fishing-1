@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员界面测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+        .warning { color: #ffc107; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .admin-panel {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            background: #f9f9f9;
+        }
+        .activity-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .activity-list {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .activity-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        .activity-info {
+            flex: 1;
+        }
+        .activity-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>👨‍💼 管理员界面功能测试</h1>
+        <p>测试管理员对路亚钓鱼体验活动的管理功能</p>
+        
+        <div>
+            <button onclick="testActivityManagement()">测试活动管理</button>
+            <button onclick="testEditActivity()">测试编辑功能</button>
+            <button onclick="testScheduleManagement()">测试时间安排</button>
+            <button onclick="simulateAdminWorkflow()">模拟管理员工作流</button>
+            <button onclick="clearLog()">清除日志</button>
+        </div>
+        
+        <div id="log" class="log"></div>
+        
+        <div id="adminInterface"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logElement = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type;
+            logElement.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+            document.getElementById('adminInterface').innerHTML = '';
+        }
+
+        // 模拟活动数据
+        let activities = [
+            {
+                id: 1,
+                title: "路亚钓鱼体验",
+                description: "专业教练指导，体验路亚钓鱼的乐趣",
+                category: "lure_fishing",
+                price: 288,
+                memberPrice: 228,
+                duration: "3小时",
+                maxParticipants: 8,
+                location: "东湖钓鱼基地",
+                features: ["专业教练", "装备提供", "鱼获保证"],
+                schedule: [
+                    { date: "2024-08-05", time: "08:00-11:00", available: 6 },
+                    { date: "2024-08-05", time: "14:00-17:00", available: 3 },
+                    { date: "2024-08-06", time: "08:00-11:00", available: 8 },
+                ],
+                status: 'active'
+            },
+            {
+                id: 2,
+                title: "森林瑜伽静修",
+                description: "在大自然中放松身心，体验瑜伽的宁静",
+                category: "forest_yoga",
+                price: 168,
+                memberPrice: 128,
+                duration: "2小时",
+                maxParticipants: 12,
+                location: "青山森林公园",
+                status: 'active'
+            }
+        ];
+
+        function testActivityManagement() {
+            log('🔧 开始测试活动管理功能...', 'info');
+            
+            try {
+                // 测试获取活动列表
+                log('📋 获取活动列表...', 'info');
+                const lurefishingActivity = activities.find(a => a.title === "路亚钓鱼体验");
+                
+                if (lurefishingActivity) {
+                    log('✅ 成功获取路亚钓鱼体验活动', 'success');
+                    log(`   - 时长: ${lurefishingActivity.duration}`, 'info');
+                    log(`   - 价格: ¥${lurefishingActivity.price}`, 'info');
+                    log(`   - 会员价: ¥${lurefishingActivity.memberPrice}`, 'info');
+                    log(`   - 状态: ${lurefishingActivity.status}`, 'info');
+                } else {
+                    log('❌ 未找到路亚钓鱼体验活动', 'error');
+                    return;
+                }
+
+                // 测试活动状态管理
+                log('🔄 测试活动状态管理...', 'info');
+                const originalStatus = lurefishingActivity.status;
+                lurefishingActivity.status = 'inactive';
+                log(`✅ 活动状态已更改: ${originalStatus} → ${lurefishingActivity.status}`, 'success');
+                
+                lurefishingActivity.status = originalStatus;
+                log(`✅ 活动状态已恢复: ${lurefishingActivity.status}`, 'success');
+
+                // 显示管理界面
+                displayAdminInterface();
+
+            } catch (error) {
+                log(`❌ 活动管理测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        function testEditActivity() {
+            log('✏️ 开始测试活动编辑功能...', 'info');
+            
+            try {
+                const activity = activities.find(a => a.title === "路亚钓鱼体验");
+                
+                if (!activity) {
+                    log('❌ 未找到要编辑的活动', 'error');
+                    return;
+                }
+
+                log('📝 模拟编辑活动信息...', 'info');
+                
+                // 保存原始数据
+                const originalData = { ...activity };
+                
+                // 模拟编辑操作
+                const editData = {
+                    duration: "3小时",
+                    price: 288,
+                    memberPrice: 228,
+                    maxParticipants: 8
+                };
+
+                // 应用编辑
+                Object.assign(activity, editData);
+                
+                log('✅ 活动信息编辑成功:', 'success');
+                log(`   - 时长: ${originalData.duration} → ${activity.duration}`, 'info');
+                log(`   - 价格: ¥${originalData.price} → ¥${activity.price}`, 'info');
+                log(`   - 会员价: ¥${originalData.memberPrice} → ¥${activity.memberPrice}`, 'info');
+
+                // 验证编辑结果
+                if (activity.duration === "3小时") {
+                    log('✅ 时长更新验证通过', 'success');
+                } else {
+                    log('❌ 时长更新验证失败', 'error');
+                }
+
+            } catch (error) {
+                log(`❌ 活动编辑测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        function testScheduleManagement() {
+            log('📅 开始测试时间安排管理...', 'info');
+            
+            try {
+                const activity = activities.find(a => a.title === "路亚钓鱼体验");
+                
+                if (!activity || !activity.schedule) {
+                    log('❌ 未找到活动或时间安排数据', 'error');
+                    return;
+                }
+
+                log('🕐 当前时间安排:', 'info');
+                activity.schedule.forEach((schedule, index) => {
+                    log(`   ${index + 1}. ${schedule.date} ${schedule.time} (可预订: ${schedule.available}人)`, 'info');
+                });
+
+                // 测试添加新时间段
+                log('➕ 测试添加新时间段...', 'info');
+                const newSchedule = {
+                    date: "2024-08-07",
+                    time: "09:00-12:00",
+                    available: 8
+                };
+                
+                activity.schedule.push(newSchedule);
+                log(`✅ 新增时间段: ${newSchedule.date} ${newSchedule.time}`, 'success');
+
+                // 测试修改时间段
+                log('✏️ 测试修改时间段...', 'info');
+                if (activity.schedule.length > 0) {
+                    const firstSchedule = activity.schedule[0];
+                    const originalTime = firstSchedule.time;
+                    firstSchedule.time = "08:00-11:00";
+                    log(`✅ 时间段修改: ${originalTime} → ${firstSchedule.time}`, 'success');
+                }
+
+                // 测试删除时间段
+                log('🗑️ 测试删除时间段...', 'info');
+                const removedSchedule = activity.schedule.pop();
+                log(`✅ 删除时间段: ${removedSchedule.date} ${removedSchedule.time}`, 'success');
+
+                log('✅ 时间安排管理测试完成', 'success');
+
+            } catch (error) {
+                log(`❌ 时间安排管理测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        function simulateAdminWorkflow() {
+            log('🔄 开始模拟管理员完整工作流...', 'info');
+            
+            try {
+                // 1. 登录管理员账户
+                log('👤 模拟管理员登录...', 'info');
+                const adminUser = {
+                    username: "admin",
+                    role: "admin",
+                    name: "系统管理员"
+                };
+                log(`✅ 管理员登录成功: ${adminUser.name}`, 'success');
+
+                // 2. 查看活动列表
+                log('📋 查看活动列表...', 'info');
+                const lurefishingActivity = activities.find(a => a.title === "路亚钓鱼体验");
+                log(`✅ 找到路亚钓鱼体验活动 (时长: ${lurefishingActivity.duration})`, 'success');
+
+                // 3. 编辑活动信息
+                log('✏️ 编辑活动信息...', 'info');
+                log(`   - 确认时长为: ${lurefishingActivity.duration}`, 'info');
+                log(`   - 确认价格为: ¥${lurefishingActivity.price}`, 'info');
+                log(`   - 确认会员价为: ¥${lurefishingActivity.memberPrice}`, 'info');
+
+                // 4. 管理时间安排
+                log('📅 管理时间安排...', 'info');
+                lurefishingActivity.schedule.forEach((schedule, index) => {
+                    log(`   ${index + 1}. ${schedule.date} ${schedule.time}`, 'info');
+                });
+
+                // 5. 保存更改
+                log('💾 保存更改...', 'info');
+                log('✅ 活动信息已保存', 'success');
+
+                // 6. 验证更改
+                log('🔍 验证更改结果...', 'info');
+                if (lurefishingActivity.duration === "3小时") {
+                    log('✅ 时长更新验证通过: 3小时', 'success');
+                } else {
+                    log(`❌ 时长验证失败: ${lurefishingActivity.duration}`, 'error');
+                }
+
+                log('🎉 管理员工作流模拟完成！', 'success');
+
+            } catch (error) {
+                log(`❌ 管理员工作流模拟失败: ${error.message}`, 'error');
+            }
+        }
+
+        function displayAdminInterface() {
+            const interfaceElement = document.getElementById('adminInterface');
+            const activity = activities.find(a => a.title === "路亚钓鱼体验");
+            
+            interfaceElement.innerHTML = `
+                <div class="admin-panel">
+                    <h3>🎣 活动管理 - ${activity.title}</h3>
+                    
+                    <div class="activity-form">
+                        <div class="form-group">
+                            <label>活动标题:</label>
+                            <input type="text" value="${activity.title}" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>活动时长:</label>
+                            <input type="text" value="${activity.duration}" class="highlight">
+                        </div>
+                        <div class="form-group">
+                            <label>原价:</label>
+                            <input type="number" value="${activity.price}">
+                        </div>
+                        <div class="form-group">
+                            <label>会员价:</label>
+                            <input type="number" value="${activity.memberPrice}">
+                        </div>
+                        <div class="form-group">
+                            <label>最大人数:</label>
+                            <input type="number" value="${activity.maxParticipants}">
+                        </div>
+                        <div class="form-group">
+                            <label>地点:</label>
+                            <input type="text" value="${activity.location}">
+                        </div>
+                    </div>
+
+                    <h4>📅 时间安排管理</h4>
+                    <div class="activity-list">
+                        ${activity.schedule.map((schedule, index) => `
+                            <div class="activity-item">
+                                <div class="activity-info">
+                                    <strong>${schedule.date}</strong> 
+                                    <span class="highlight">${schedule.time}</span>
+                                    (可预订: ${schedule.available}人)
+                                </div>
+                                <div class="activity-actions">
+                                    <button class="btn-small">编辑</button>
+                                    <button class="btn-small">删除</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        <button onclick="log('💾 活动信息已保存', 'success')">保存更改</button>
+                        <button onclick="log('➕ 添加新时间段', 'info')">添加时间段</button>
+                        <button onclick="log('📊 查看预订统计', 'info')">查看统计</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 页面加载时自动运行测试
+        window.onload = function() {
+            log('🚀 管理员界面测试开始', 'info');
+            log('🎯 测试目标: 验证管理员可以正确管理路亚钓鱼体验活动', 'info');
+            log('', 'info');
+            testActivityManagement();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>员工界面测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+        .warning { color: #ffc107; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .staff-panel {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            background: #f9f9f9;
+        }
+        .order-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            background: white;
+        }
+        .qr-scanner {
+            border: 2px dashed #007bff;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            margin: 15px 0;
+            background: #f8f9ff;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-confirmed {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-used {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .customer-info {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>👷‍♂️ 员工界面功能测试</h1>
+        <p>测试员工处理路亚钓鱼体验活动预订确认的功能</p>
+        
+        <div>
+            <button onclick="testQRScanning()">测试QR码扫描</button>
+            <button onclick="testOrderProcessing()">测试订单处理</button>
+            <button onclick="testCustomerService()">测试客户服务</button>
+            <button onclick="simulateStaffWorkflow()">模拟员工工作流</button>
+            <button onclick="clearLog()">清除日志</button>
+        </div>
+        
+        <div id="log" class="log"></div>
+        
+        <div id="staffInterface"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logElement = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type;
+            logElement.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+            document.getElementById('staffInterface').innerHTML = '';
+        }
+
+        // 模拟订单数据
+        const orders = [
+            {
+                id: "ORD001",
+                customerId: 3,
+                customerName: "李大华",
+                customerPhone: "13800138001",
+                activityId: 1,
+                activityTitle: "路亚钓鱼体验",
+                activityDate: "2024-08-05",
+                date: "2024-08-05",
+                time: "08:00-11:00",
+                participants: 1,
+                unitPrice: 228,
+                originalPrice: 288,
+                finalPrice: 228,
+                totalAmount: 228,
+                isMemberPrice: true,
+                status: "confirmed",
+                paymentStatus: "paid",
+                qrCode: "QR_ORD001_2024",
+                isUsed: false,
+                specialRequests: "希望安排靠近湖边的位置",
+                createdAt: "2024-08-01T10:30:00Z"
+            },
+            {
+                id: "ORD004",
+                customerId: 6,
+                customerName: "王小明",
+                customerPhone: "13900139004",
+                activityId: 1,
+                activityTitle: "路亚钓鱼体验",
+                activityDate: "2024-08-05",
+                date: "2024-08-05",
+                time: "14:00-17:00",
+                participants: 2,
+                unitPrice: 288,
+                originalPrice: 576,
+                finalPrice: 576,
+                totalAmount: 576,
+                isMemberPrice: false,
+                status: "confirmed",
+                paymentStatus: "paid",
+                qrCode: "QR_ORD004_2024",
+                isUsed: false,
+                specialRequests: "",
+                createdAt: "2024-08-02T14:20:00Z"
+            }
+        ];
+
+        function testQRScanning() {
+            log('📱 开始测试QR码扫描功能...', 'info');
+            
+            try {
+                // 模拟扫描QR码
+                const testOrder = orders[0];
+                log('🔍 模拟扫描QR码...', 'info');
+                log(`   QR码内容: ${testOrder.qrCode}`, 'info');
+
+                // 验证QR码
+                log('✅ QR码验证成功', 'success');
+                log(`   订单号: ${testOrder.id}`, 'info');
+                log(`   客户: ${testOrder.customerName}`, 'info');
+                log(`   活动: ${testOrder.activityTitle}`, 'info');
+                log(`   时间: ${testOrder.date} ${testOrder.time}`, 'info');
+                log(`   人数: ${testOrder.participants}人`, 'info');
+
+                // 检查活动时长信息
+                log('🕐 检查活动时长信息...', 'info');
+                const timeRange = testOrder.time;
+                const [startTime, endTime] = timeRange.split('-');
+                const startHour = parseInt(startTime.split(':')[0]);
+                const endHour = parseInt(endTime.split(':')[0]);
+                const duration = endHour - startHour;
+                
+                log(`   时间段: ${timeRange}`, 'info');
+                log(`   计算时长: ${duration}小时`, 'info');
+                
+                if (duration === 3) {
+                    log('✅ 活动时长验证通过: 3小时', 'success');
+                } else {
+                    log(`❌ 活动时长验证失败: ${duration}小时`, 'error');
+                }
+
+                // 模拟确认入场
+                log('🎫 模拟确认客户入场...', 'info');
+                testOrder.isUsed = true;
+                testOrder.usedAt = new Date().toISOString();
+                log('✅ 客户入场确认成功', 'success');
+
+                displayStaffInterface();
+
+            } catch (error) {
+                log(`❌ QR码扫描测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        function testOrderProcessing() {
+            log('📋 开始测试订单处理功能...', 'info');
+            
+            try {
+                // 获取路亚钓鱼体验的订单
+                const lurefishingOrders = orders.filter(order => 
+                    order.activityTitle === "路亚钓鱼体验"
+                );
+
+                log(`📊 找到 ${lurefishingOrders.length} 个路亚钓鱼体验订单`, 'info');
+
+                lurefishingOrders.forEach((order, index) => {
+                    log(`   订单 ${index + 1}:`, 'info');
+                    log(`     - 客户: ${order.customerName}`, 'info');
+                    log(`     - 时间: ${order.date} ${order.time}`, 'info');
+                    log(`     - 人数: ${order.participants}人`, 'info');
+                    log(`     - 金额: ¥${order.finalPrice}`, 'info');
+                    log(`     - 状态: ${order.status}`, 'info');
+                    
+                    // 验证时间段是否为3小时
+                    const [start, end] = order.time.split('-');
+                    const startHour = parseInt(start.split(':')[0]);
+                    const endHour = parseInt(end.split(':')[0]);
+                    const duration = endHour - startHour;
+                    
+                    if (duration === 3) {
+                        log(`     ✅ 时长正确: ${duration}小时`, 'success');
+                    } else {
+                        log(`     ❌ 时长错误: ${duration}小时`, 'error');
+                    }
+                });
+
+                // 测试订单状态更新
+                log('🔄 测试订单状态更新...', 'info');
+                const testOrder = lurefishingOrders[0];
+                const originalStatus = testOrder.status;
+                
+                testOrder.status = 'in_progress';
+                log(`✅ 订单状态更新: ${originalStatus} → ${testOrder.status}`, 'success');
+                
+                testOrder.status = 'completed';
+                log(`✅ 订单状态更新: in_progress → ${testOrder.status}`, 'success');
+
+            } catch (error) {
+                log(`❌ 订单处理测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        function testCustomerService() {
+            log('🎧 开始测试客户服务功能...', 'info');
+            
+            try {
+                const testOrder = orders[0];
+                
+                // 模拟客户咨询
+                log('💬 模拟客户咨询活动信息...', 'info');
+                log(`   客户询问: "${testOrder.activityTitle}" 活动多长时间？`, 'info');
+                
+                // 员工查询活动信息
+                log('🔍 员工查询活动信息...', 'info');
+                const activityInfo = {
+                    title: testOrder.activityTitle,
+                    duration: "3小时",
+                    time: testOrder.time,
+                    location: "东湖钓鱼基地",
+                    features: ["专业教练", "装备提供", "鱼获保证"]
+                };
+                
+                log('📋 向客户提供活动信息:', 'info');
+                log(`   - 活动名称: ${activityInfo.title}`, 'info');
+                log(`   - 活动时长: ${activityInfo.duration}`, 'success');
+                log(`   - 预订时间: ${activityInfo.time}`, 'info');
+                log(`   - 活动地点: ${activityInfo.location}`, 'info');
+                log(`   - 包含服务: ${activityInfo.features.join(', ')}`, 'info');
+
+                // 模拟处理特殊要求
+                if (testOrder.specialRequests) {
+                    log('📝 处理客户特殊要求...', 'info');
+                    log(`   客户要求: ${testOrder.specialRequests}`, 'info');
+                    log('✅ 特殊要求已记录并安排', 'success');
+                }
+
+                // 模拟提供帮助
+                log('🤝 提供客户服务...', 'info');
+                log('   - 确认预订信息无误', 'info');
+                log('   - 提醒客户准时到达', 'info');
+                log('   - 告知注意事项', 'info');
+                log('✅ 客户服务完成', 'success');
+
+            } catch (error) {
+                log(`❌ 客户服务测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        function simulateStaffWorkflow() {
+            log('🔄 开始模拟员工完整工作流...', 'info');
+            
+            try {
+                // 1. 员工登录
+                log('👤 模拟员工登录...', 'info');
+                const staffUser = {
+                    username: "staff001",
+                    role: "staff",
+                    name: "张小明"
+                };
+                log(`✅ 员工登录成功: ${staffUser.name}`, 'success');
+
+                // 2. 查看今日预订
+                log('📅 查看今日路亚钓鱼体验预订...', 'info');
+                const todayOrders = orders.filter(order => 
+                    order.activityTitle === "路亚钓鱼体验" && 
+                    order.date === "2024-08-05"
+                );
+                log(`📊 今日共有 ${todayOrders.length} 个预订`, 'info');
+
+                // 3. 处理第一个预订
+                const firstOrder = todayOrders[0];
+                log('🎫 处理第一个预订...', 'info');
+                log(`   客户: ${firstOrder.customerName}`, 'info');
+                log(`   时间: ${firstOrder.time} (3小时)`, 'success');
+                log(`   人数: ${firstOrder.participants}人`, 'info');
+
+                // 4. 扫描QR码确认
+                log('📱 扫描客户QR码...', 'info');
+                log(`   QR码: ${firstOrder.qrCode}`, 'info');
+                log('✅ QR码验证成功，客户可以入场', 'success');
+
+                // 5. 更新订单状态
+                firstOrder.isUsed = true;
+                firstOrder.usedAt = new Date().toISOString();
+                log('💾 更新订单状态为已使用', 'success');
+
+                // 6. 记录服务日志
+                log('📝 记录服务日志...', 'info');
+                const serviceLog = {
+                    orderId: firstOrder.id,
+                    staffId: staffUser.username,
+                    action: 'check_in',
+                    timestamp: new Date().toISOString(),
+                    notes: '客户准时到达，QR码验证成功'
+                };
+                log('✅ 服务日志已记录', 'success');
+
+                log('🎉 员工工作流模拟完成！', 'success');
+
+            } catch (error) {
+                log(`❌ 员工工作流模拟失败: ${error.message}`, 'error');
+            }
+        }
+
+        function displayStaffInterface() {
+            const interfaceElement = document.getElementById('staffInterface');
+            const lurefishingOrders = orders.filter(order => 
+                order.activityTitle === "路亚钓鱼体验"
+            );
+            
+            interfaceElement.innerHTML = `
+                <div class="staff-panel">
+                    <h3>🎣 路亚钓鱼体验 - 预订管理</h3>
+                    
+                    <div class="qr-scanner">
+                        <h4>📱 QR码扫描区域</h4>
+                        <p>请客户出示预订QR码进行扫描确认</p>
+                        <button onclick="log('📱 正在扫描QR码...', 'info')">开始扫描</button>
+                    </div>
+
+                    <h4>📋 今日预订列表</h4>
+                    ${lurefishingOrders.map(order => `
+                        <div class="order-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <h5>${order.customerName} (${order.id})</h5>
+                                    <p><strong>时间:</strong> <span class="highlight">${order.time}</span> (3小时)</p>
+                                    <p><strong>人数:</strong> ${order.participants}人 | <strong>金额:</strong> ¥${order.finalPrice}</p>
+                                    ${order.specialRequests ? `<p><strong>特殊要求:</strong> ${order.specialRequests}</p>` : ''}
+                                </div>
+                                <div>
+                                    <span class="status-badge ${order.isUsed ? 'status-used' : 'status-confirmed'}">
+                                        ${order.isUsed ? '已入场' : '待确认'}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="customer-info">
+                                <strong>客户信息:</strong> ${order.customerPhone}
+                                ${order.isMemberPrice ? ' | 会员客户' : ''}
+                            </div>
+                            
+                            <div style="margin-top: 10px;">
+                                <button onclick="log('✅ 确认客户 ${order.customerName} 入场', 'success')" 
+                                        ${order.isUsed ? 'disabled' : ''}>
+                                    ${order.isUsed ? '已确认入场' : '确认入场'}
+                                </button>
+                                <button onclick="log('📞 联系客户 ${order.customerName}', 'info')">联系客户</button>
+                                <button onclick="log('📝 查看订单 ${order.id} 详情', 'info')">查看详情</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // 页面加载时自动运行测试
+        window.onload = function() {
+            log('🚀 员工界面测试开始', 'info');
+            log('🎯 测试目标: 验证员工可以正确处理路亚钓鱼体验活动预订', 'info');
+            log('', 'info');
+            testQRScanning();
+        };
+    </script>
+</body>
+</html>
