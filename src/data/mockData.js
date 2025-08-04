@@ -107,7 +107,7 @@ export const orders = [
     activityId: 1,
     activityTitle: "路亚钓鱼体验",
     date: "2024-08-05",
-    time: "08:00-12:00",
+    time: "08:00-11:00",
     participants: 1,
     originalPrice: 288,
     finalPrice: 228,
